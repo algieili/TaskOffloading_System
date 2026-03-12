@@ -12,30 +12,7 @@ class ServerSimulator:
         }
 
     def simulate_execution(self, server_name):
-        """
-        Simulates the processing of a task on a specific server tier.
-        """
-        config = self.servers.get(server_name, self.servers["Edge"])
-        
-        latency = random.randint(*config["lat_range"])
-        proc_time = random.randint(*config["proc_range"])
-        energy = round(proc_time * config["energy_coeff"] * random.uniform(0.9, 1.1), 2)
-        
         return {
-            "server": server_name,
-            "latency": latency,
-            "proc_time": proc_time,
-            "energy": energy,
-            "status": "Success"
+            "latency": random.randint(5, 100),
+            "energy": round(random.uniform(0.5, 4.0), 2)
         }
-
-    def get_best_server(self, gbfs_val, pso_val):
-        """
-        Simple decision logic to choose a server based on scores.
-        """
-        if gbfs_val < 30:
-            return "Edge"
-        elif pso_val < 50:
-            return "Fog"
-        else:
-            return "Cloud"

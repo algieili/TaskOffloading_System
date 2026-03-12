@@ -11,14 +11,14 @@ class DashboardApp:
         self.root = root
         self.root.title("IoT Task Offloading & Performance Monitor")
         self.root.geometry("1100x800")
-        self.root.configure(bg='#121212') # Dark gray / black background
+        self.root.configure(bg='#121212')  
 
         self.simulator = ServerSimulator()
         
-        # Define styles
+        
         self.setup_styles()
         
-        # Main container with two columns
+       
         self.main_container = tk.Frame(self.root, bg='#121212', padx=10, pady=10)
         self.main_container.pack(fill='both', expand=True)
         
@@ -30,8 +30,7 @@ class DashboardApp:
         
         self.main_container.grid_columnconfigure(1, weight=1)
         self.main_container.grid_rowconfigure(0, weight=1)
-
-        # Build Panels
+ 
         self.create_task_generation_panel()
         self.create_decision_engine_panel()
         self.create_server_execution_panel()
@@ -42,7 +41,7 @@ class DashboardApp:
         style = ttk.Style()
         style.theme_use('clam')
         
-        # Dark theme for treeview
+    
         style.configure("Treeview", 
                         background="#2d2d2d", 
                         foreground="white", 
@@ -150,67 +149,53 @@ class DashboardApp:
         self.logs_table.pack(fill='x', expand=True)
 
     def on_offload_click(self):
+        """Simplified 10% Functionality Flow."""
         try:
             # 1. Read input fields
-            task_params = {
-                'machine_id': self.inputs["Machine ID"].get(),
-                'temperature': float(self.inputs["Temperature (°C)"].get()),
-                'cpu_load': float(self.inputs["CPU Load (%)"].get()),
-                'net_latency': float(self.inputs["Net Latency (ms)"].get()),
-                'power_usage': float(self.inputs["Power Usage (W)"].get()),
-                'queue': int(self.inputs["Task Queue"].get()),
-                'type': self.task_type.get()
-            }
+            machine_id = self.inputs["Machine ID"].get()
+            task_type = self.task_type.get()
             
             self.status_bar.config(text="Task Status: Processing...", fg='#007acc')
             self.root.update_idletasks()
             
-            # 2. Call algorithms
-            gbfs_score = compute_gbfs_score(task_params)
-            pso_score = compute_pso_score(task_params)
+            # 10% Logic: Mock values for demonstration
+            gbfs_val = round(random.uniform(20, 80), 2)
+            pso_val = round(random.uniform(20, 80), 2)
             
-            # 3. Update Decision Panel
-            self.decision_labels["Params Summary"].config(text=f"{task_params['type']} @ {task_params['machine_id']}")
-            self.decision_labels["GBFS Priority Score"].config(text=str(gbfs_score))
-            self.decision_labels["PSO Optimization Score"].config(text=str(pso_score))
+            # Update Decision Panel
+            self.decision_labels["Params Summary"].config(text=f"{task_type} @ {machine_id}")
+            self.decision_labels["GBFS Priority Score"].config(text=str(gbfs_val))
+            self.decision_labels["PSO Optimization Score"].config(text=str(pso_val))
             
-            # 4. Choose server
-            best_server = self.simulator.get_best_server(gbfs_score, pso_score)
-            self.decision_labels["Final Decision"].config(text=best_server)
-            self.decision_labels["Decision Reason"].config(text=f"Score balance: G={gbfs_score}, P={pso_score}")
-            
-            # 5. Simulate Execution
-            execution_data = self.simulator.simulate_execution(best_server)
+            # Decision
+            server = "Edge" if gbfs_val < 40 else ("Fog" if pso_val < 50 else "Cloud")
+            self.decision_labels["Final Decision"].config(text=server)
+            self.decision_labels["Decision Reason"].config(text=f"Balanced score distribution")
             
             # Update Execution Panel
-            self.execution_labels["Selected Server"].config(text=execution_data['server'])
-            self.execution_labels["Simulated Proc Time"].config(text=f"{execution_data['proc_time']} ms")
-            self.execution_labels["Energy Consumption"].config(text=f"{execution_data['energy']} W")
+            proc_time = random.randint(50, 400)
+            energy = round(random.uniform(1.5, 6.0), 2)
+            self.execution_labels["Selected Server"].config(text=server)
+            self.execution_labels["Simulated Proc Time"].config(text=f"{proc_time} ms")
+            self.execution_labels["Energy Consumption"].config(text=f"{energy} W")
             self.status_bar.config(text="Task Status: Completed", fg='#4ec9b0')
             
-            # 6. Add to logs table
+            # Add to logs table
             self.logs_table.insert('', 0, values=(
-                task_params['machine_id'],
-                task_params['type'],
-                execution_data['server'],
-                execution_data['latency'],
-                execution_data['energy']
+                machine_id,
+                task_type,
+                server,
+                random.randint(10, 150),
+                energy
             ))
             
-            # 7. Update graphs
-            metrics = {
-                'latency': execution_data['latency'] + execution_data['proc_time'],
-                'throughput': round(1000 / (execution_data['latency'] + execution_data['proc_time'] + 1), 2),
-                'energy': execution_data['energy'],
-                'utilization': random.randint(20, 90)
-            }
-            self.monitor.update_graphs(metrics)
-            
-            # Log to file (simple append)
-            with open("iot_task_offloading/logs/simulation.log", "a") as f:
-                f.write(f"Task: {task_params['machine_id']}, Server: {best_server}, Latency: {metrics['latency']}ms\n")
+            # Update graphs
+            self.monitor.update_graphs({
+                'latency': random.randint(20, 200),
+                'throughput': random.randint(30, 90),
+                'energy': energy,
+                'utilization': random.randint(10, 85)
+            })
 
-        except ValueError as e:
-            messagebox.showerror("Input Error", "Please ensure all numeric fields contain valid numbers.")
         except Exception as e:
             messagebox.showerror("Error", f"An unexpected error occurred: {str(e)}")
