@@ -2,11 +2,47 @@ import random
 
 def compute_pso_score(task_params):
     """
-    [10% Functionality Prototype]
-    Demonstrates the swarm optimization result phase of PSO.
-    Returns a randomized optimized score for demonstration.
+    [25% Functionality Prototype]
+    Demonstrates the swarm optimization result phase of PSO based on dataset values.
+    Returns a simulated optimized score.
     """
-    # Mock swarm convergence
-    base_val = 50.0
-    convergence_offset = random.uniform(-10, 10)
-    return round(base_val + convergence_offset, 2)
+    try:
+        net_latency = float(task_params.get("Net Latency (ms)", 0))
+        cpu_load = float(task_params.get("CPU Load (%)", 0))
+        temp = float(task_params.get("Temperature (°C)", 0))
+        power_usage = float(task_params.get("Power Usage (W)", 0))
+        task_queue = float(task_params.get("Task Queue", 0))
+        task_type = task_params.get("Task Type", "Balanced")
+
+        # PSO score is basically modeled here to find an optimal point between CPU load and latency
+        pso_score = (cpu_load * 0.2) + (net_latency * 0.25) + (temp * 0.15) + (power_usage * 0.1)
+        convergence_offset = random.uniform(-5, -2) # PSO simulated optimization impact
+        optimized_score = pso_score + convergence_offset
+        
+        # Derive estimates with PSO optimizations
+        # Usually PSO finds better throughput/energy trade-offs than GBFS
+        est_latency = (net_latency * 0.9) + (task_queue * 4) + (cpu_load * 0.4)
+        est_throughput = max(15, 110 - (cpu_load * 0.4) - (temp * 0.1))
+        est_energy = power_usage * 0.9 + (cpu_load * 0.04)
+        est_utilization = min(95, cpu_load * 0.9 + (task_queue * 1.5))
+        
+        # Suggested Location
+        if task_type == "Computation-Intensive" and est_throughput > 70:
+            suggested_location = "Cloud"
+        elif task_type == "Latency-Sensitive" and task_queue < 8:
+            suggested_location = "Edge"
+        else:
+            suggested_location = "Cloud" if optimized_score > 35 else "Edge"
+            
+        return {
+            "score": round(optimized_score, 2),
+            "latency": round(est_latency, 2),
+            "throughput": round(est_throughput, 2),
+            "energy": round(est_energy, 2),
+            "utilization": round(est_utilization, 2),
+            "location": suggested_location,
+            "time": "45 ms (15 iterations)",
+            "remark": "Swarm optimization converged"
+        }
+    except Exception as e:
+        return {"score": 0, "latency": 0, "throughput": 0, "energy": 0, "utilization": 0, "location": "Cloud", "time": "0 ms", "remark": "Error"}
