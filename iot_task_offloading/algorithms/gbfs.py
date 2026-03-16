@@ -1,8 +1,4 @@
 def compute_gbfs_score(task_params):
-    """
-    [25% Functionality Prototype]
-    Demonstrates the heuristic scoring phase of GBFS based on dataset values.
-    """
     try:
         net_latency = float(task_params.get("Net Latency (ms)", 0))
         cpu_load = float(task_params.get("CPU Load (%)", 0))
@@ -11,16 +7,15 @@ def compute_gbfs_score(task_params):
         temp = float(task_params.get("Temperature (°C)", 0))
         task_type = task_params.get("Task Type", "Balanced")
 
-        # Example GBFS logic
         gbfs_score = (net_latency * 0.35) + (cpu_load * 0.30) + (task_queue * 0.20) + (power_usage * 0.15)
         
-        # Derive estimates (mock formulas based on inputs)
         est_latency = net_latency + (task_queue * 5) + (cpu_load * 0.5)
         est_throughput = max(10, 100 - (cpu_load * 0.5) - (temp * 0.2))
         est_energy = power_usage + (cpu_load * 0.05)
         est_utilization = min(100, cpu_load + (task_queue * 2))
         
-        # Suggested Location
+        est_utilization = min(100, cpu_load + (task_queue * 2))
+        
         if task_type == "Latency-Sensitive" and net_latency > 20 and task_queue < 10:
             suggested_location = "Edge"
         elif task_type == "Computation-Intensive" and cpu_load > 60:

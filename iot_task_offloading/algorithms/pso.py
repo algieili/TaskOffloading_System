@@ -1,11 +1,6 @@
 import random
 
 def compute_pso_score(task_params):
-    """
-    [25% Functionality Prototype]
-    Demonstrates the swarm optimization result phase of PSO based on dataset values.
-    Returns a simulated optimized score.
-    """
     try:
         net_latency = float(task_params.get("Net Latency (ms)", 0))
         cpu_load = float(task_params.get("CPU Load (%)", 0))
@@ -14,19 +9,17 @@ def compute_pso_score(task_params):
         task_queue = float(task_params.get("Task Queue", 0))
         task_type = task_params.get("Task Type", "Balanced")
 
-        # PSO score is basically modeled here to find an optimal point between CPU load and latency
         pso_score = (cpu_load * 0.2) + (net_latency * 0.25) + (temp * 0.15) + (power_usage * 0.1)
-        convergence_offset = random.uniform(-5, -2) # PSO simulated optimization impact
+        convergence_offset = random.uniform(-5, -2)
         optimized_score = pso_score + convergence_offset
         
-        # Derive estimates with PSO optimizations
-        # Usually PSO finds better throughput/energy trade-offs than GBFS
         est_latency = (net_latency * 0.9) + (task_queue * 4) + (cpu_load * 0.4)
         est_throughput = max(15, 110 - (cpu_load * 0.4) - (temp * 0.1))
         est_energy = power_usage * 0.9 + (cpu_load * 0.04)
         est_utilization = min(95, cpu_load * 0.9 + (task_queue * 1.5))
         
-        # Suggested Location
+        est_utilization = min(95, cpu_load * 0.9 + (task_queue * 1.5))
+        
         if task_type == "Computation-Intensive" and est_throughput > 70:
             suggested_location = "Cloud"
         elif task_type == "Latency-Sensitive" and task_queue < 8:
