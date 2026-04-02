@@ -7,13 +7,15 @@ import {
   CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList
 } from "recharts";
 
-const STEPS = [
-  "Data Input & Generation",
-  "Algorithms Applied",
-  "Decision Evaluated",
-  "Task Processed",
-  "Execution Completed"
+const STEP_DETAILS = [
+  { title: "DATA INPUT & GENERATION", desc: "Enter machine data and generate tasks for processing." },
+  { title: "ALGORITHMS APPLIED", desc: "Evaluate tasks using GBFS and PSO algorithms." },
+  { title: "DECISION EVALUATION", desc: "Compare results and determine the best processing choice." },
+  { title: "TASK PROCESSING", desc: "Assign and simulate task execution on Edge or Cloud." },
+  { title: "EXECUTION RESULTS", desc: "View performance results, graphs, and execution logs." }
 ];
+
+const STEPS = STEP_DETAILS.map(s => s.title);
 
 // --- Subcomponents ---
 
@@ -21,13 +23,14 @@ const SidebarNavigation = ({ currentStep, onJump }) => (
   <div className="sidebar">
     <h1>SmartEdge</h1>
     <p>Task Offloading System</p>
-    {STEPS.map((step, idx) => (
+    {STEP_DETAILS.map((step, idx) => (
       <button 
         key={idx} 
         className={`nav-item ${idx === currentStep ? "active" : ""}`}
         onClick={() => onJump(idx)}
       >
-        {idx + 1}. {step}
+        <div className="nav-title">{idx + 1}. {step.title}</div>
+        <div className="nav-desc">{step.desc}</div>
       </button>
     ))}
   </div>
@@ -62,11 +65,18 @@ const StepNavigation = ({ currentStep, maxReached, onNext, onPrev }) => (
   </div>
 );
 
+const PanelHeader = ({ title, description, variant }) => (
+  <div className={`panel-label ${variant === 'main' ? 'main-header' : ''}`}>
+    {title}
+    {description && <span className="helper-text">{description}</span>}
+  </div>
+);
+
 // --- Panels ---
 
 const InputGuidePanel = () => (
   <div className="card">
-    <h2 className="card-title cyan-text">INPUT GUIDE</h2>
+    <PanelHeader title="INPUT GUIDE" description="Follow these steps to generate data." />
     <div className="guide-text">
       <p>Welcome to the Task Offloading Simulator.</p><br/>
       <p>• <strong>Select Machine:</strong> Choose the machine generating the task.</p>
@@ -102,7 +112,7 @@ const OperationalMetricsPanel = ({ machine, setMachine, category, autoTask, inpu
 
   return (
     <div className="card">
-      <h2 className="card-title text-main">OPERATIONAL METRICS</h2>
+      <PanelHeader title="DATA INPUT & GENERATION" description="Enter system data to begin the offloading evaluation." />
       
       <div className="section-title">Machine Information</div>
       <div className="data-row">
@@ -170,7 +180,7 @@ class ErrorBoundary extends React.Component {
 
 const AlgoPanel = ({ title, colorClass, data }) => (
   <div className="card">
-    <h2 className={`card-title ${colorClass}`}>{title}</h2>
+    <PanelHeader title={title} description={`Detailed ${title.split(' ')[0]} metrics and target destination.`} />
     <p className="subtitle">Note: Lower delay means faster performance. Higher processing speed is better.</p>
     <div className="data-row"><span className="data-label">Score</span><span className="data-value">{data?.score || '-'}</span></div>
     <div className="data-row"><span className="data-label">Delay (ms)</span><span className="data-value">{data?.latency || '-'} ms</span></div>
@@ -192,7 +202,7 @@ const ComparisonEvaluationPanel = ({ gbfs, pso, winner }) => {
   };
   return (
     <div className="card">
-      <h2 className="card-title text-main">COMPARISON EVALUATION</h2>
+      <PanelHeader title="COMPARISON RESULTS" description="Direct comparison of GBFS and PSO metrics." />
       <table className="data-table">
         <thead>
           <tr><th>Metric</th><th>GBFS</th><th>PSO</th><th>Winner</th></tr>
@@ -222,7 +232,7 @@ const ComparisonEvaluationPanel = ({ gbfs, pso, winner }) => {
 
 const ProcessingDecisionPanel = ({ decision, reason }) => (
   <div className="card">
-    <h2 className="card-title yellow-text">PROCESSING DECISION</h2>
+    <PanelHeader title="PROCESSING DECISION" description="Final destination chosen by the smart offloading logic." />
     <div className={`decision-large ${decision === 'Edge' ? 'cyan-text' : 'magenta-text'}`}>
       OFFLOAD TO {decision ? decision.toUpperCase() : "..."}
     </div>
@@ -232,7 +242,7 @@ const ProcessingDecisionPanel = ({ decision, reason }) => (
 
 const InterpretationAnalysisPanel = ({ winner, server, taskType }) => (
   <div className="card">
-    <h2 className="card-title text-main">INTERPRETATION & ANALYSIS</h2>
+    <PanelHeader title="INTERPRETATION & ANALYSIS" description="Contextual breakdown of the offloading results." />
     <div className="interpretation-panel">
       <div className="interpretation-item">
         <p><strong>Algorithm Result:</strong> {winner} was deemed the better algorithm for this cycle because it optimized critical metrics better than its counterpart.</p>
@@ -249,7 +259,7 @@ const InterpretationAnalysisPanel = ({ winner, server, taskType }) => (
 
 const TaskAssignmentPanel = ({ taskType, server, summary }) => (
   <div className="card">
-    <h2 className="card-title text-main">TASK ASSIGNMENT</h2>
+    <PanelHeader title="TASK ASSIGNMENT" description="Targeted server and task categorization." />
     <div className="data-row"><span className="data-label">Task Type</span><span className="data-value">{taskType}</span></div>
     <div className="data-row"><span className="data-label">Assigned Server</span><span className={`data-value ${server === 'Edge' ? 'cyan-text' : 'magenta-text'}`}>{server} Server</span></div>
     <div className="data-row"><span className="data-label">Summary</span><span className="data-value">{summary}</span></div>
@@ -258,7 +268,7 @@ const TaskAssignmentPanel = ({ taskType, server, summary }) => (
 
 const ResultTransmissionPanel = () => (
   <div className="card">
-    <h2 className="card-title text-main">RESULT TRANSMISSION</h2>
+    <PanelHeader title="RESULT TRANSMISSION" description="Confirmation of data flow back to the local device." />
     <div className="data-row"><span className="data-label">Processing Status</span><span className="data-value green-text">Complete</span></div>
     <div className="data-row"><span className="data-label">Transmission Status</span><span className="data-value green-text">Complete</span></div>
     <div className="data-row"><span className="data-label">Network Return Status</span><span className="data-value green-text">Confirmed</span></div>
@@ -286,7 +296,7 @@ const PerformanceMonitoringPanel = ({ gbfs, pso }) => {
 
   return (
     <div className="card" style={{minHeight: "450px"}}>
-      <h2 className="card-title text-main" style={{textAlign: "center", marginBottom: "15px"}}>System Performance Metrics</h2>
+      <PanelHeader title="PERFORMANCE MONITORING" description="Continuous tracking of system efficiency and utilization." />
       <ResponsiveContainer width="100%" height={320}>
         <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -311,7 +321,7 @@ const PerformanceMonitoringPanel = ({ gbfs, pso }) => {
 
 const ExecutionLogsPanel = ({ logs }) => (
   <div className="card">
-    <h2 className="card-title text-main">EXECUTION LOGS</h2>
+    <PanelHeader title="EXECUTION LOGS" description="Detailed timestamped records of all historical decisions." />
     <table className="data-table">
       <thead>
         <tr>
@@ -424,6 +434,11 @@ export default function App() {
       case 0:
         return (
           <div className="step-container">
+            <PanelHeader 
+              title="DATA INPUT & GENERATION" 
+              description="Enter machine data and generate tasks for processing." 
+              variant="main"
+            />
             <div className="row-container">
               <OperationalMetricsPanel 
                 {...{machine, setMachine, category, autoTask, inputs, setInputs, onRun: handleRun, isProcessing}}
@@ -435,6 +450,11 @@ export default function App() {
       case 1:
         return (
           <div className="step-container">
+            <PanelHeader 
+              title="ALGORITHMS APPLIED" 
+              description="Evaluate tasks using GBFS and PSO algorithms." 
+              variant="main"
+            />
             <div className="row-container">
               <AlgoPanel title="GBFS EVALUATION" colorClass="cyan-text" data={gbfsData} />
               <AlgoPanel title="PSO EVALUATION" colorClass="magenta-text" data={psoData} />
@@ -444,6 +464,11 @@ export default function App() {
       case 2:
         return (
           <div className="step-container">
+            <PanelHeader 
+              title="DECISION EVALUATION" 
+              description="Compare results and determine the best processing choice." 
+              variant="main"
+            />
             <div className="row-container">
               <ProcessingDecisionPanel decision={decisionData.server} reason={decisionData.reason} />
             </div>
@@ -456,6 +481,11 @@ export default function App() {
       case 3:
         return (
           <div className="step-container">
+            <PanelHeader 
+              title="TASK PROCESSING" 
+              description="Assign and simulate task execution on Edge or Cloud." 
+              variant="main"
+            />
             <div className="row-container">
               <TaskAssignmentPanel taskType={decisionData.taskType} server={decisionData.server} summary={`${decisionData.winner} optimally assigned to ${decisionData.server} server.`} />
               <ResultTransmissionPanel />
@@ -465,6 +495,11 @@ export default function App() {
       case 4:
         return (
           <div className="step-container" style={{paddingBottom: "40px"}}>
+            <PanelHeader 
+              title="EXECUTION RESULTS" 
+              description="View performance results, graphs, and execution logs." 
+              variant="main"
+            />
             <PerformanceMonitoringPanel gbfs={gbfsData} pso={psoData} />
             <ExecutionLogsPanel logs={logs} />
           </div>
