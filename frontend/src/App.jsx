@@ -21,8 +21,8 @@ const STEPS = STEP_DETAILS.map(s => s.title);
 
 const SidebarNavigation = ({ currentStep, onJump }) => (
   <div className="sidebar">
-    <h1>SmartEdge</h1>
-    <p>Task Offloading System</p>
+    <h1>Task Offloading</h1>
+    <p>Simulation System</p>
     {STEP_DETAILS.map((step, idx) => (
       <button 
         key={idx} 

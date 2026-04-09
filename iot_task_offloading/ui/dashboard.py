@@ -25,7 +25,7 @@ DARK_GREEN = "#064e3b"
 class DashboardApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Edge-Enabled IoT Manufacturing Task Offloading Monitoring System")
+        self.root.title("Task Offloading Simulation System")
         self.root.geometry("1800x1000")
         self.root.configure(bg=BG_COLOR)
         
@@ -71,7 +71,7 @@ class DashboardApp:
         logo_frame = tk.Frame(self.sidebar_frame, bg=SIDEBAR_BG)
         logo_frame.pack(fill="x", pady=40, padx=10)
         
-        tk.Label(logo_frame, text="IoT Edge\nManufacturing Task\nOffloading System", 
+        tk.Label(logo_frame, text="Task Offloading\nSimulation System", 
                  font=('Segoe UI', 15, 'bold'), fg=CYAN, bg=SIDEBAR_BG, justify='center').pack()
 
         nav_items = [

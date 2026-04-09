@@ -9,7 +9,7 @@ from ui.dashboard import DashboardApp
 
 def main():
     """
-    Main entry point for the IoT Task Offloading Simulation Dashboard.
+    Main entry point for the Task Offloading Simulation System.
     Initialized the Tkinter root and starts the Dashboard application.
     """
     try:
@@ -19,7 +19,7 @@ def main():
         # Set window icon placeholder or title
         # root.iconbitmap('icon.ico') # If available
         
-        print("IoT Task Offloading Simulation Dashboard Started.")
+        print("Task Offloading Simulation System Started.")
         root.mainloop()
         
     except Exception as e:
