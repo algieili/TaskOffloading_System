@@ -2,10 +2,10 @@ import random
 
 def compute_pso_score(task_params):
     try:
-        net_latency = float(task_params.get("Net Latency (ms)", 0))
-        cpu_load = float(task_params.get("CPU Load (%)", 0))
-        temp = float(task_params.get("Temperature (°C)", 0))
-        power_usage = float(task_params.get("Power Usage (W)", 0))
+        net_latency = float(task_params.get("Net Latency (milliseconds)", 0))
+        cpu_load = float(task_params.get("CPU Load (percent)", 0))
+        temp = float(task_params.get("Temperature (degrees Celsius)", 0))
+        power_usage = float(task_params.get("Power Usage (watts)", 0))
         task_queue = float(task_params.get("Task Queue", 0))
         task_type = task_params.get("Task Type", "Balanced")
 
@@ -16,8 +16,6 @@ def compute_pso_score(task_params):
         est_latency = (net_latency * 0.9) + (task_queue * 4) + (cpu_load * 0.4)
         est_throughput = max(15, 110 - (cpu_load * 0.4) - (temp * 0.1))
         est_energy = power_usage * 0.9 + (cpu_load * 0.04)
-        est_utilization = min(95, cpu_load * 0.9 + (task_queue * 1.5))
-        
         est_utilization = min(95, cpu_load * 0.9 + (task_queue * 1.5))
         
         if task_type == "Computation-Intensive" and est_throughput > 70:
@@ -34,8 +32,8 @@ def compute_pso_score(task_params):
             "energy": round(est_energy, 2),
             "utilization": round(est_utilization, 2),
             "location": suggested_location,
-            "time": "45 ms (15 iterations)",
-            "remark": "Swarm optimization converged"
+            "time": "45 (15 iterations)",
+            "remark": "Globally optimized"
         }
     except Exception as e:
-        return {"score": 0, "latency": 0, "throughput": 0, "energy": 0, "utilization": 0, "location": "Cloud", "time": "0 ms", "remark": "Error"}
+        return {"score": 0, "latency": 0, "throughput": 0, "energy": 0, "utilization": 0, "location": "Cloud", "time": "0", "remark": "Error"}

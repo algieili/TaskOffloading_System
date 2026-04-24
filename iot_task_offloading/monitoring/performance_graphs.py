@@ -16,7 +16,7 @@ class PerformanceMonitor:
             'pso': { 'latency': [], 'throughput': [], 'energy': [], 'utilization': [] }
         }
         
-        self.titles = ['Latency Comparison (ms)', 'Throughput Comparison (tps)', 'Energy Comparison (W)', 'Resource Util Comparison (%)']
+        self.titles = ['Delay (milliseconds)', 'Speed (tasks per second)', 'Energy (watts)', 'Resource Usage (percent)']
         
         self.setup_plots()
         
@@ -29,7 +29,9 @@ class PerformanceMonitor:
         flat_axs = self.axs.flatten()
         for i, ax in enumerate(flat_axs):
             ax.set_facecolor('#2d2d2d')
-            ax.set_title(self.titles[i], color='white', fontsize=10, weight='bold')
+            ax.set_title(self.titles[i].split(" (")[0] + " Comparison", color='white', fontsize=10, weight='bold')
+            ax.set_ylabel(self.titles[i], color='white', fontsize=8)
+            ax.set_xlabel('Time (seconds)', color='white', fontsize=8)
             ax.tick_params(colors='white', labelsize=8)
             for spine in ax.spines.values():
                 spine.set_color('#444444')

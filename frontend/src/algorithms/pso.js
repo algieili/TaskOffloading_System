@@ -1,9 +1,9 @@
 export function computePsoScore(taskParams) {
   try {
-    const netLatency = parseFloat(taskParams["Net Latency (ms)"] || 0);
-    const cpuLoad = parseFloat(taskParams["CPU Load (%)"] || 0);
-    const temp = parseFloat(taskParams["Temperature (°C)"] || 0);
-    const powerUsage = parseFloat(taskParams["Power Usage (W)"] || 0);
+    const netLatency = parseFloat(taskParams["Net Latency (milliseconds)"] || 0);
+    const cpuLoad = parseFloat(taskParams["CPU Load (percent)"] || 0);
+    const temp = parseFloat(taskParams["Temperature (degrees Celsius)"] || 0);
+    const powerUsage = parseFloat(taskParams["Power Usage (watts)"] || 0);
     const taskQueue = parseFloat(taskParams["Task Queue"] || 0);
     const taskType = taskParams["Task Type"] || "Balanced";
 
@@ -32,10 +32,10 @@ export function computePsoScore(taskParams) {
         energy: estEnergy.toFixed(2),
         utilization: estUtilization.toFixed(2),
         location: suggestedLocation,
-        time: "45 ms (15 iterations)",
-        remark: "Swarm optimization converged"
+        time: "45 (15 iterations)",
+        remark: "Globally optimized"
     };
   } catch (err) {
-    return { score: 0, latency: 0, throughput: 0, energy: 0, utilization: 0, location: "Cloud", time: "0 ms", remark: "Error" };
+    return { score: 0, latency: 0, throughput: 0, energy: 0, utilization: 0, location: "Cloud", time: "0", remark: "Error" };
   }
 }

@@ -256,14 +256,11 @@ class DashboardApp:
         grid_frame.pack(fill='x', expand=True)
 
         tk.Label(grid_frame, text="Specific Machine", bg=CARD_BG, fg=TEXT_MUTED, font=('Segoe UI', 11, 'bold')).grid(row=0, column=0, sticky='w', pady=8)
-        self.machine_var = tk.StringVar()
-        self.machine_cb = ttk.Combobox(grid_frame, textvariable=self.machine_var, values=[
-            "Select Machine", "CNC Milling Machine", "Arc Welding Machine", "Plasma Cutting Machine", "Conveyor Systems", "Electro-Deposition Coating System"
-        ], font=('Segoe UI', 12), state="readonly", width=35)
-        self.machine_cb.grid(row=0, column=1, sticky='ew', padx=15, pady=8)
+        self.machine_var = tk.StringVar(value="Plasma Cutting Machine")
+        tk.Label(grid_frame, text="Plasma Cutting Machine", bg=CARD_BG, fg=CYAN, font=('Segoe UI', 12, 'bold')).grid(row=0, column=1, sticky='w', padx=15, pady=8)
         
         tk.Label(grid_frame, text="Machine Category", bg=CARD_BG, fg=TEXT_MUTED, font=('Segoe UI', 11, 'bold')).grid(row=1, column=0, sticky='w', pady=8)
-        self.category_var = tk.StringVar()
+        self.category_var = tk.StringVar(value="Cutting Machines")
         
         # Style category exactly like combobox without arrow
         cat_frame = tk.Frame(grid_frame, bg=SIDEBAR_BG, highlightbackground=CARD_BORDER, highlightthickness=1)
@@ -278,8 +275,6 @@ class DashboardApp:
         self.dynamic_inputs = {}
         
         self.auto_task_type_var = tk.StringVar(value="Computation-Intensive")
-        self.machine_cb.bind('<<ComboboxSelected>>', self.on_machine_selected)
-        self.machine_cb.current(0)
         self.on_machine_selected()
 
         btn_frame = tk.Frame(card, bg=CARD_BG)
@@ -313,7 +308,7 @@ class DashboardApp:
         grid = tk.Frame(card, bg=CARD_BG)
         grid.pack(fill='both', expand=True)
         
-        fields = ["Score", "Latency", "Response Time", "Throughput", "Resource Util", "Target Location", "Decision Time", "Remark"]
+        fields = ["Score", "Delay (milliseconds)", "Response Time (milliseconds)", "Processing Speed (tasks per second)", "Resource Usage (percent)", "Target Location", "Decision Time", "Remark"]
         for i, f in enumerate(fields):
             tk.Label(grid, text=f, bg=CARD_BG, fg=TEXT_MUTED, font=('Segoe UI', 11, 'bold')).grid(row=i, column=0, sticky='w', pady=4)
             val = tk.Label(grid, text="-", bg=CARD_BG, fg=color, font=('Segoe UI', 12, 'bold'))
@@ -346,7 +341,7 @@ class DashboardApp:
             tk.Label(table, text=h, bg=SIDEBAR_BG, fg=TEXT_MUTED, font=('Segoe UI', 10, 'bold')).grid(row=0, column=c, sticky='nsew', padx=1, pady=1)
         
         self.comp_labels = {}
-        metrics = ["Latency", "Throughput", "Energy", "Resource"]
+        metrics = ["Delay (milliseconds)", "Processing Speed (tasks per second)", "Energy (watts)", "Resource Usage (percent)"]
         
         for r, m in enumerate(metrics, start=1):
             tk.Label(table, text=m, bg=CARD_BG, fg=TEXT_MAIN, font=('Segoe UI', 11, 'bold')).grid(row=r, column=0, sticky='nsew', padx=1, pady=1)
@@ -389,7 +384,7 @@ class DashboardApp:
         self.target_widgets["transmission_panel"] = border
         self.trans_labels = {}
         
-        fields = ["Processing Status", "Transmission Status", "Network Return Status", "Final Task Status"]
+        fields = ["Processing Status", "Transmission Time (milliseconds)", "Network Return Status", "Final Task Status"]
         grid = tk.Frame(card, bg=CARD_BG)
         grid.pack(fill='both', expand=True)
         for i, f in enumerate(fields):
@@ -415,8 +410,8 @@ class DashboardApp:
         border.pack(fill='both', expand=True)
         self.target_widgets["logs_panel"] = border
         
-        headers = ["No.", "Machine Category", "Specific Machine", "Input Metrics", "Task Type", "GBFS Lat", "PSO Lat", "GBFS Eng", "PSO Eng", "Winner", "Server", "Status"]
-        self.log_weights = [1, 2, 2, 3, 2, 1, 1, 1, 1, 1, 1, 1]
+        headers = ["No.", "Timestamp", "Machine Category", "Specific Machine", "Input Metrics", "Task Type", "Delay (milliseconds)", "Speed (tasks per second)", "GBFS Energy", "PSO Energy", "Winner", "Server", "Status"]
+        self.log_weights = [1, 2, 2, 2, 3, 2, 1, 1, 1, 1, 1, 1, 1]
         
         header_frame = tk.Frame(card, bg=SIDEBAR_BG, pady=8)
         header_frame.pack(fill='x')
@@ -445,8 +440,23 @@ class DashboardApp:
         self.logs_inner_frame.bind("<Configure>", lambda e: self.logs_canvas.configure(scrollregion=self.logs_canvas.bbox("all")))
         
         self.log_row_count = 0
+        self.empty_log_msg = tk.Label(self.logs_inner_frame, text="No execution records available. Run a simulation to generate results.", bg=CARD_BG, fg=TEXT_MUTED, font=('Segoe UI', 11, 'italic'), pady=20)
+        self.empty_log_msg.pack(fill='x')
+        
+        clear_btn = tk.Button(card, text="Clear Execution Logs", bg="#ef4444", fg="#ffffff", font=('Segoe UI', 9, 'bold'), borderwidth=0, padx=10, cursor="hand2", command=self.clear_logs)
+        clear_btn.place(relx=0.98, rely=0.02, anchor="ne")
+
+    def clear_logs(self):
+        for widget in self.logs_inner_frame.winfo_children():
+            widget.destroy()
+        self.log_row_count = 0
+        self.empty_log_msg = tk.Label(self.logs_inner_frame, text="No execution records available. Run a simulation to generate results.", bg=CARD_BG, fg=TEXT_MUTED, font=('Segoe UI', 11, 'italic'), pady=20)
+        self.empty_log_msg.pack(fill='x')
+        self.logs_canvas.yview_moveto(0)
 
     def add_log_record(self, data):
+        if hasattr(self, 'empty_log_msg') and self.empty_log_msg.winfo_exists():
+            self.empty_log_msg.destroy()
         r = self.log_row_count
         self.log_row_count += 1
         bg_color = CARD_BG if r % 2 == 0 else "#253347"
@@ -460,26 +470,27 @@ class DashboardApp:
             tk.Label(row_frame, text=text, bg=bg_color, fg=fg, font=('Segoe UI', 9, font_weight), anchor='w', wraplength=180, justify='left').grid(row=0, column=idx, sticky='ew', padx=5)
             
         make_lbl(0, str(data[0]), TEXT_MUTED)
-        make_lbl(1, data[1], TEXT_MAIN)
+        make_lbl(1, data[1], TEXT_MUTED)
         make_lbl(2, data[2], TEXT_MAIN)
-        make_lbl(3, data[3], TEXT_MUTED)
-        make_lbl(4, data[4], TEXT_MAIN)
+        make_lbl(3, data[3], TEXT_MAIN)
+        make_lbl(4, data[4], TEXT_MUTED)
         make_lbl(5, data[5], TEXT_MAIN)
         make_lbl(6, data[6], TEXT_MAIN)
         make_lbl(7, data[7], TEXT_MAIN)
         make_lbl(8, data[8], TEXT_MAIN)
+        make_lbl(9, data[9], TEXT_MAIN)
         
-        winner = data[9]
+        winner = data[10]
         w_color = CYAN if winner == "GBFS" else "#f97316" # Orange for PSO
-        make_lbl(9, winner, w_color, 'bold')
+        make_lbl(10, winner, w_color, 'bold')
         
-        server = data[10]
+        server = data[11]
         s_color = {"Local": "#3b82f6", "Edge": CYAN, "Cloud": "#a855f7"}.get(server, TEXT_MAIN)
-        make_lbl(10, server, s_color, 'bold')
+        make_lbl(11, server, s_color, 'bold')
         
-        status = data[11]
+        status = data[12]
         st_frame = tk.Frame(row_frame, bg=bg_color)
-        st_frame.grid(row=0, column=11, sticky='w', padx=5)
+        st_frame.grid(row=0, column=12, sticky='w', padx=5)
         st_color = GREEN if status == "SUCCESS" else ("#ef4444" if status == "FAILED" else YELLOW)
         tk.Label(st_frame, text=f" {status} ", bg=st_color, fg="#000000", font=('Segoe UI', 8, 'bold')).pack(side='left')
         
@@ -487,53 +498,58 @@ class DashboardApp:
         self.logs_canvas.yview_moveto(1.0)
 
     # --- LOGIC & FLOW ---
+    def lookup_plasma_matrix(self, material, thickness, current):
+        import math
+        baseline_speed = current * 20
+        cut_speed = 0
+        voltage = 140
+        pierce_delay_time = 0
+        torch_distance = 3.2
+        pierce_height = 6.4
+
+        if material == "Mild Steel":
+            cut_speed = baseline_speed * math.exp(-thickness / 10) * 1.5
+            voltage = 130 + (thickness * 1.5)
+            pierce_delay_time = 0.1 if thickness < 10 else (0.5 if thickness < 20 else 1.0)
+        elif material == "Stainless Steel":
+            cut_speed = baseline_speed * math.exp(-thickness / 10) * 1.2
+            voltage = 135 + (thickness * 1.8)
+            pierce_delay_time = 0.2 if thickness < 10 else (0.6 if thickness < 20 else 1.2)
+        elif material == "Aluminum":
+            cut_speed = baseline_speed * math.exp(-thickness / 12) * 1.7
+            voltage = 140 + (thickness * 1.2)
+            pierce_delay_time = 0.1 if thickness < 10 else (0.4 if thickness < 20 else 0.8)
+        else:
+            cut_speed = 1000
+
+        cut_speed = max(100, min(6000, round(cut_speed)))
+        voltage = max(100, min(200, round(voltage)))
+        return {"cutSpeed": cut_speed, "voltage": voltage, "pierceDelayTime": pierce_delay_time, "torchDistance": torch_distance, "pierceHeight": pierce_height}
+
+
+
     def on_machine_selected(self, event=None):
-        machine = self.machine_var.get()
-        if machine == "Select Machine" or not machine:
-            self.category_var.set("")
-            self.auto_task_type_var.set("")
-            for w in self.dynamic_metrics_frame.winfo_children(): w.destroy()
-            self.dynamic_inputs.clear()
-            return
-            
-        categories = {
-            "CNC Milling Machine": "Frame Fabrication / Metal Fabrication",
-            "Arc Welding Machine": "Welding Machines",
-            "Plasma Cutting Machine": "Cutting Machines",
-            "Conveyor Systems": "Assembly Line Equipment",
-            "Electro-Deposition Coating System": "Painting Machines"
-        }
-        metrics = {
-            "CNC Milling Machine": ["Temperature", "Vibration", "Spindle Speed", "Motor Load"],
-            "Arc Welding Machine": ["Welding Current", "Machine Temperature", "Power Consumption"],
-            "Plasma Cutting Machine": ["Cutting Speed", "Machine Temperature", "Energy Consumption"],
-            "Conveyor Systems": ["Queue Length", "Processing Time", "Idle Time"],
-            "Electro-Deposition Coating System": ["Temperature", "Humidity", "Cycle Time"]
-        }
-        task_types = {
-            "CNC Milling Machine": "Computation-Intensive",
-            "Arc Welding Machine": "Latency-Sensitive",
-            "Plasma Cutting Machine": "Computation-Intensive",
-            "Conveyor Systems": "Latency-Sensitive",
-            "Electro-Deposition Coating System": "Balanced"
-        }
-        
-        self.category_var.set(categories.get(machine, ""))
-        self.auto_task_type_var.set(task_types.get(machine, "Balanced"))
+        metrics = ["Material Type", "Material Thickness (millimeters)", "Cutting Current (amperes)"]
         
         for w in self.dynamic_metrics_frame.winfo_children(): w.destroy()
         self.dynamic_inputs.clear()
         
-        for i, m in enumerate(metrics.get(machine, [])):
+        for i, m in enumerate(metrics):
             tk.Label(self.dynamic_metrics_frame, text=f"{m}:", bg=CARD_BG, fg=TEXT_MUTED, font=('Segoe UI', 11, 'bold')).grid(row=i, column=0, sticky='w', pady=6)
-            
             entry_border = tk.Frame(self.dynamic_metrics_frame, bg=SIDEBAR_BG, highlightbackground=CARD_BORDER, highlightthickness=1)
             entry_border.grid(row=i, column=1, sticky='ew', padx=15, pady=6)
-            
-            e = tk.Entry(entry_border, bg=SIDEBAR_BG, fg=TEXT_MAIN, bd=0, insertbackground='white', font=('Segoe UI', 12))
-            e.insert(0, "0")
-            e.pack(fill='x', padx=5, pady=3)
-            self.dynamic_inputs[m] = e
+            if m == "Material Type":
+                cb = ttk.Combobox(entry_border, values=["Mild Steel", "Stainless Steel", "Aluminum"], font=('Segoe UI', 12), state="readonly")
+                cb.pack(fill='x', padx=5, pady=3)
+                self.dynamic_inputs[m] = cb
+                cb.current(0)
+            else:
+                e = tk.Entry(entry_border, bg=SIDEBAR_BG, fg=TEXT_MAIN, bd=0, insertbackground='white', font=('Segoe UI', 12))
+                e.insert(0, "0")
+                e.pack(fill='x', padx=5, pady=3)
+                self.dynamic_inputs[m] = e
+                if m == "Material Thickness (millimeters)": e.delete(0, tk.END); e.insert(0, "10")
+                if m == "Cutting Current (amperes)": e.delete(0, tk.END); e.insert(0, "45")
 
     def set_flow_step(self, active_index):
         steps = list(self.flow_labels.keys())
@@ -553,10 +569,45 @@ class DashboardApp:
     def get_form_values(self):
         v = {}
         v["Machine ID"] = f"MCH-{random.randint(100, 999)}"
-        v["CPU Load (%)"] = str(random.randint(50, 95))
-        v["Net Latency (ms)"] = str(random.randint(10, 50))
-        v["Power Usage (W)"] = str(random.randint(10, 30))
+        v["CPU Load (percent)"] = str(random.randint(50, 95))
+        v["Net Latency (milliseconds)"] = str(random.randint(10, 50))
+        v["Power Usage (watts)"] = str(random.randint(10, 30))
         v["Task Queue"] = str(random.randint(1, 10))
+        
+        mat_type = self.dynamic_inputs.get("Material Type").get() if "Material Type" in self.dynamic_inputs else "Mild Steel"
+        try:
+            thick = float(self.dynamic_inputs.get("Material Thickness (millimeters)").get() or 10)
+        except:
+            thick = 10.0
+        try:
+            curr = float(self.dynamic_inputs.get("Cutting Current (amperes)").get() or 45)
+        except:
+            curr = 45.0
+        
+        mat_factor = 0.8 if mat_type == "Aluminum" else (1.2 if mat_type == "Stainless Steel" else 1.0)
+        max_cut_speed = 6000
+        af = self.lookup_plasma_matrix(mat_type, thick, curr)
+        
+        processing_speed = af["cutSpeed"] / max_cut_speed
+        latency = af["pierceDelayTime"] * 1000
+        energy = af["voltage"] * curr
+        complexity = thick * mat_factor
+        
+        v["materialType"] = mat_type
+        v["thickness_mm"] = thick
+        v["current_amperes"] = curr
+        v["processingSpeed_mm_per_min"] = af["cutSpeed"]
+        v["voltage_volts"] = af["voltage"]
+        v["pierceDelay_seconds"] = af["pierceDelayTime"]
+        v["torchDistance_mm"] = af["torchDistance"]
+        v["pierceHeight_mm"] = af["pierceHeight"]
+        v["latency_milliseconds"] = latency
+        v["energy_watts"] = energy
+        v["complexity_score"] = complexity
+        
+        v["Net Latency (milliseconds)"] = str(latency)
+        v["Power Usage (watts)"] = str(energy)
+
         v["Input Metrics"] = " | ".join([f"{k}: {e.get()}" for k, e in self.dynamic_inputs.items()])
         for k, e in self.dynamic_inputs.items(): v[k] = e.get()
         v["Task Type"] = self.auto_task_type_var.get()
@@ -565,11 +616,6 @@ class DashboardApp:
         return v
 
     def on_offload_click(self):
-        machine = self.machine_var.get()
-        if machine == "Select Machine" or not machine:
-            messagebox.showwarning("Warning", "Please select a machine before generating a task.")
-            return
-            
         try:
             params = self.get_form_values()
             self.set_flow_step(0)
@@ -604,12 +650,12 @@ class DashboardApp:
             time.sleep(0.3)
             self.set_flow_step(3)
             self.trans_labels["Processing Status"].config(text="Processing Complete", fg=GREEN)
-            self.trans_labels["Transmission Status"].config(text="Network Transmitting...", fg=YELLOW)
+            self.trans_labels["Transmission Time (milliseconds)"].config(text="Network Transmitting...", fg=YELLOW)
             self.root.update()
             
             time.sleep(0.3)
             self.set_flow_step(4)
-            self.trans_labels["Transmission Status"].config(text="Transmission Complete", fg=GREEN)
+            self.trans_labels["Transmission Time (milliseconds)"].config(text="145 milliseconds", fg=GREEN)
             self.trans_labels["Network Return Status"].config(text="Confirmed", fg=GREEN)
             self.trans_labels["Final Task Status"].config(text="Task Successfully Offloaded & Returned", fg=CYAN)
             
@@ -617,8 +663,10 @@ class DashboardApp:
             self.monitor.update_graphs(gbfs_res, pso_res)
             self.record_counter += 1
             
+            import datetime
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
             log_data = (
-                self.record_counter, params["Machine Category"], params["Specific Machine"], params["Input Metrics"], params["Task Type"],
+                self.record_counter, timestamp, params["Machine Category"], params["Specific Machine"], params["Input Metrics"], params["Task Type"],
                 f"{gbfs_res['latency']:.2f}", f"{pso_res['latency']:.2f}", f"{gbfs_res['energy']:.2f}", f"{pso_res['energy']:.2f}", winner, server, "SUCCESS"
             )
             self.add_log_record(log_data)
@@ -631,10 +679,10 @@ class DashboardApp:
 
     def update_algo_panel_vals(self, labels, res):
         labels["Score"].config(text=str(res.get('score', '-')))
-        labels["Latency"].config(text=f"{res.get('latency', '-')} ms")
-        labels["Response Time"].config(text=f"{res.get('time', '-')} ms") # Mocking response time using decision time
-        labels["Throughput"].config(text=f"{res.get('throughput', '-')} tps")
-        labels["Resource Util"].config(text=f"{res.get('utilization', '-')} %")
+        labels["Delay (milliseconds)"].config(text=str(res.get('latency', '-')))
+        labels["Response Time (milliseconds)"].config(text=str(res.get('time', '-'))) # Mocking response time using decision time
+        labels["Processing Speed (tasks per second)"].config(text=str(res.get('throughput', '-')))
+        labels["Resource Usage (percent)"].config(text=str(res.get('utilization', '-')))
         labels["Target Location"].config(text=res.get('location', '-'))
         labels["Decision Time"].config(text=res.get('time', '-'))
         labels["Remark"].config(text=res.get('remark', '-'))
@@ -650,21 +698,21 @@ class DashboardApp:
         b_eng = compare(gbfs['energy'], pso['energy'], True)
         b_utl = compare(gbfs['utilization'], pso['utilization'], True)
 
-        self.comp_labels["Latency"][0].config(text=f"{gbfs['latency']} ms")
-        self.comp_labels["Latency"][1].config(text=f"{pso['latency']} ms")
-        self.comp_labels["Latency"][2].config(text=b_lat, fg=CYAN if b_lat=='GBFS' else MAGENTA)
+        self.comp_labels["Delay (milliseconds)"][0].config(text=str(gbfs['latency']))
+        self.comp_labels["Delay (milliseconds)"][1].config(text=str(pso['latency']))
+        self.comp_labels["Delay (milliseconds)"][2].config(text=b_lat, fg=CYAN if b_lat=='GBFS' else MAGENTA)
         
-        self.comp_labels["Throughput"][0].config(text=f"{gbfs['throughput']} tps")
-        self.comp_labels["Throughput"][1].config(text=f"{pso['throughput']} tps")
-        self.comp_labels["Throughput"][2].config(text=b_thr, fg=CYAN if b_thr=='GBFS' else MAGENTA)
+        self.comp_labels["Processing Speed (tasks per second)"][0].config(text=str(gbfs['throughput']))
+        self.comp_labels["Processing Speed (tasks per second)"][1].config(text=str(pso['throughput']))
+        self.comp_labels["Processing Speed (tasks per second)"][2].config(text=b_thr, fg=CYAN if b_thr=='GBFS' else MAGENTA)
         
-        self.comp_labels["Energy"][0].config(text=f"{gbfs['energy']} W")
-        self.comp_labels["Energy"][1].config(text=f"{pso['energy']} W")
-        self.comp_labels["Energy"][2].config(text=b_eng, fg=CYAN if b_eng=='GBFS' else MAGENTA)
+        self.comp_labels["Energy (watts)"][0].config(text=str(gbfs['energy']))
+        self.comp_labels["Energy (watts)"][1].config(text=str(pso['energy']))
+        self.comp_labels["Energy (watts)"][2].config(text=b_eng, fg=CYAN if b_eng=='GBFS' else MAGENTA)
         
-        self.comp_labels["Resource"][0].config(text=f"{gbfs['utilization']} %")
-        self.comp_labels["Resource"][1].config(text=f"{pso['utilization']} %")
-        self.comp_labels["Resource"][2].config(text=b_utl, fg=CYAN if b_utl=='GBFS' else MAGENTA)
+        self.comp_labels["Resource Usage (percent)"][0].config(text=str(gbfs['utilization']))
+        self.comp_labels["Resource Usage (percent)"][1].config(text=str(pso['utilization']))
+        self.comp_labels["Resource Usage (percent)"][2].config(text=b_utl, fg=CYAN if b_utl=='GBFS' else MAGENTA)
 
         if task_type == "Latency-Sensitive":
             winner = b_lat
