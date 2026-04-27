@@ -33,7 +33,7 @@ export function computePsoScore(taskParams) {
         utilization: estUtilization.toFixed(2),
         location: suggestedLocation,
         time: "45 (15 iterations)",
-        remark: "Globally optimized"
+        remark: "Particle Swarm Optimization applied for global optimization"
     };
   } catch (err) {
     return { score: 0, latency: 0, throughput: 0, energy: 0, utilization: 0, location: "Cloud", time: "0", remark: "Error" };

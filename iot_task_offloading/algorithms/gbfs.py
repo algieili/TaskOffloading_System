@@ -31,7 +31,7 @@ def compute_gbfs_score(task_params):
             "utilization": round(est_utilization, 2),
             "location": suggested_location,
             "time": "12",
-            "remark": "Greedy heuristic applied"
+            "remark": "Greedy Best-First Search approach applied"
         }
     except Exception as e:
         return {"score": 0, "latency": 0, "throughput": 0, "energy": 0, "utilization": 0, "location": "Edge", "time": "0", "remark": "Error"}

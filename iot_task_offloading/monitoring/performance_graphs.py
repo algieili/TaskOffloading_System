@@ -67,3 +67,54 @@ class PerformanceMonitor:
             ax.legend(loc='upper right', fontsize=7, facecolor='#1e1e1e', edgecolor='#444444', labelcolor='white')
             
         self.canvas.draw()
+
+class PerformancePieCharts:
+    def __init__(self, parent_frame):
+        self.fig, self.axs = plt.subplots(1, 2, figsize=(14, 4))
+        self.fig.patch.set_facecolor('#1e293b')
+        
+        self.colors = ['#3b82f6', '#10b981', '#f97316', '#a855f7']
+        self.labels = ['Delay', 'Processing Speed', 'Energy', 'Resource Usage']
+        
+        self.setup_plots()
+        
+        self.canvas = FigureCanvasTkAgg(self.fig, master=parent_frame)
+        self.canvas.get_tk_widget().pack(fill='both', expand=True)
+
+    def setup_plots(self):
+        for ax in self.axs:
+            ax.set_facecolor('#1e293b')
+            ax.axis('equal')
+            
+    def update_graphs(self, gbfs_metrics, pso_metrics):
+        for ax in self.axs:
+            ax.clear()
+        
+        self.setup_plots()
+        
+        gbfs_data = [
+            float(gbfs_metrics.get('latency', 0)),
+            float(gbfs_metrics.get('throughput', 0)),
+            float(gbfs_metrics.get('energy', 0)),
+            float(gbfs_metrics.get('utilization', 0))
+        ]
+        
+        pso_data = [
+            float(pso_metrics.get('latency', 0)),
+            float(pso_metrics.get('throughput', 0)),
+            float(pso_metrics.get('energy', 0)),
+            float(pso_metrics.get('utilization', 0))
+        ]
+        
+        if sum(gbfs_data) > 0:
+            wedges1, texts1, autotexts1 = self.axs[0].pie(gbfs_data, labels=None, autopct='%1.0f%%', startangle=90, colors=self.colors, textprops=dict(color="w", weight="bold", fontsize=10))
+            self.axs[0].set_title('Greedy Best-First Search (GBFS)\nPerformance Distribution', color='white', fontsize=11, weight='bold', pad=15)
+
+        if sum(pso_data) > 0:
+            wedges2, texts2, autotexts2 = self.axs[1].pie(pso_data, labels=None, autopct='%1.0f%%', startangle=90, colors=self.colors, textprops=dict(color="w", weight="bold", fontsize=10))
+            self.axs[1].set_title('Particle Swarm Optimization (PSO)\nPerformance Distribution', color='white', fontsize=11, weight='bold', pad=15)
+            
+        self.fig.legend(self.labels, loc='lower center', ncol=4, facecolor='#1e293b', edgecolor='#334155', labelcolor='white', bbox_to_anchor=(0.5, 0.0))
+        
+        self.fig.tight_layout(rect=[0, 0.05, 1, 1])
+        self.canvas.draw()

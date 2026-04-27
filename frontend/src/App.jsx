@@ -4,12 +4,13 @@ import { computeGbfsScore } from "./algorithms/gbfs";
 import { computePsoScore } from "./algorithms/pso";
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, 
-  CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList
+  CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList,
+  PieChart, Pie, Cell
 } from "recharts";
 
 const STEP_DETAILS = [
   { title: "DATA INPUT & GENERATION", desc: "Enter machine data and generate tasks for processing." },
-  { title: "ALGORITHMS APPLIED", desc: "Evaluate tasks using GBFS and PSO algorithms." },
+  { title: "ALGORITHMS APPLIED", desc: "Evaluate tasks using Greedy Best-First Search (GBFS) and Particle Swarm Optimization (PSO) algorithms." },
   { title: "DECISION EVALUATION", desc: "Compare results and determine the best processing choice." },
   { title: "TASK PROCESSING", desc: "Assign and simulate task execution on Edge or Cloud." },
   { title: "EXECUTION RESULTS", desc: "View performance results, graphs, and execution logs." }
@@ -190,11 +191,91 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+const COLORS = {
+  Delay: "#3b82f6",
+  Speed: "#10b981",
+  Energy: "#f97316",
+  Usage: "#a855f7"
+};
+
+const PerformanceOverviewPanel = ({ gbfs, pso }) => {
+  if (!gbfs || !pso) return null;
+
+  const prepareData = (data) => [
+    { name: 'Delay (milliseconds)', value: parseFloat(data.latency) || 0, fill: COLORS.Delay },
+    { name: 'Processing Speed (tasks per second)', value: parseFloat(data.throughput) || 0, fill: COLORS.Speed },
+    { name: 'Energy (watts)', value: parseFloat(data.energy) || 0, fill: COLORS.Energy },
+    { name: 'Resource Usage (percent)', value: parseFloat(data.utilization) || 0, fill: COLORS.Usage }
+  ];
+
+  const gbfsData = prepareData(gbfs);
+  const psoData = prepareData(pso);
+
+  const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+    if (percent < 0.05) return null;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+    const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+    return (
+      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight="bold">
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
+  return (
+    <div className="card" style={{ marginBottom: '20px' }}>
+      <PanelHeader title="Performance Overview" description="Visual breakdown of metric contributions." />
+      
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '20px', marginTop: '10px' }}>
+        <div style={{ flex: '1 1 300px', textAlign: 'center' }}>
+          <div className="section-title" style={{ fontSize: '14px', marginBottom: '0' }}>Greedy Best-First Search (GBFS) Performance Distribution</div>
+          <ResponsiveContainer width="100%" height={220}>
+            <PieChart>
+              <Pie data={gbfsData} cx="50%" cy="50%" labelLine={false} label={renderCustomLabel} outerRadius={80} dataKey="value">
+                {gbfsData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => Number(value).toFixed(2)} contentStyle={{backgroundColor: "#1e293b", borderColor: "#334155", color: "#f8fafc"}} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div style={{ flex: '1 1 300px', textAlign: 'center' }}>
+          <div className="section-title" style={{ fontSize: '14px', marginBottom: '0' }}>Particle Swarm Optimization (PSO) Performance Distribution</div>
+          <ResponsiveContainer width="100%" height={220}>
+            <PieChart>
+              <Pie data={psoData} cx="50%" cy="50%" labelLine={false} label={renderCustomLabel} outerRadius={80} dataKey="value">
+                {psoData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => Number(value).toFixed(2)} contentStyle={{backgroundColor: "#1e293b", borderColor: "#334155", color: "#f8fafc"}} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '12px', height: '12px', backgroundColor: COLORS.Delay, borderRadius: '2px' }}></div><span style={{ fontSize: '13px', color: 'var(--text-main)' }}>Delay</span></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '12px', height: '12px', backgroundColor: COLORS.Speed, borderRadius: '2px' }}></div><span style={{ fontSize: '13px', color: 'var(--text-main)' }}>Processing Speed</span></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '12px', height: '12px', backgroundColor: COLORS.Energy, borderRadius: '2px' }}></div><span style={{ fontSize: '13px', color: 'var(--text-main)' }}>Energy</span></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '12px', height: '12px', backgroundColor: COLORS.Usage, borderRadius: '2px' }}></div><span style={{ fontSize: '13px', color: 'var(--text-main)' }}>Resource Usage</span></div>
+      </div>
+
+      <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', marginTop: '15px', fontStyle: 'italic' }}>
+        This chart shows how each algorithm performs across different metrics. It helps visualize which factors contribute most to overall performance.
+      </p>
+    </div>
+  );
+};
+
 const AlgoPanel = ({ title, color, data }) => (
   <div className="card">
-    <PanelHeader title={title} description={`Detailed ${title.split(' ')[0]} metrics and target destination.`} />
-    <p className="subtitle">Note: Lower delay means faster performance. Higher processing speed is better.</p>
-    <div className="section-title" style={{color: `var(--${color})`}}>{title} Result</div>
+    <PanelHeader title={title} description={`Detailed ${title.includes('(') ? title.split('(')[1].split(')')[0] : title.split(' ')[0]} metrics and target destination.`} />
+    <p className="subtitle">Note: Lower delay means faster response time. Higher processing speed means more tasks completed per second.</p>
+    <div className="section-title" style={{color: `var(--${color})`}}>{title.replace(/ EVALUATION| Evaluation/i, '')} Result</div>
     <div className="data-row"><span className="data-label">Delay (milliseconds)</span><span className="data-value">{data?.latency || 0}</span></div>
     <div className="data-row"><span className="data-label">Processing Speed (tasks per second)</span><span className="data-value">{data?.throughput || 0}</span></div>
     <div className="data-row"><span className="data-label">Energy (watts)</span><span className="data-value">{data?.energy || 0}</span></div>
@@ -217,7 +298,7 @@ const ComparisonEvaluationPanel = ({ gbfs, pso, winner }) => {
       <PanelHeader title="COMPARISON RESULTS" description="Direct comparison of GBFS and PSO metrics." />
       <table className="data-table">
         <thead>
-          <tr><th>Metric</th><th>GBFS</th><th>PSO</th><th>Winner</th></tr>
+          <tr><th>Metric</th><th>GBFS</th><th>PSO</th><th>Better Result (Based on Performance)</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -397,7 +478,7 @@ const ExecutionResultsView = ({ gbfs, pso, logs, setLogs }) => {
      const avgGbfs = trendData.reduce((acc, curr) => acc + curr.GBFS_Delay, 0) / trendData.length;
      const avgPso = trendData.reduce((acc, curr) => acc + curr.PSO_Delay, 0) / trendData.length;
      improvement = (((avgGbfs - avgPso) / avgGbfs) * 100).toFixed(1);
-     insightText = `Over the visualized period, PSO reduced average latency by ${improvement}% compared to GBFS, showing robust and consistent performance improvement over time.`;
+     insightText = `Over the visualized period, PSO made the system ${improvement}% faster in response time compared to GBFS, showing robust and consistent performance improvement over time.`;
   }
 
   return (
@@ -442,7 +523,7 @@ const ExecutionResultsView = ({ gbfs, pso, logs, setLogs }) => {
           <table className="data-table">
             <thead>
               <tr>
-                <th>No.</th><th>Timestamp</th><th>Machine Category</th><th>Task Type</th><th>Delay (milliseconds)</th><th>Speed (tasks per second)</th><th>Winner</th><th>Server</th><th>Status</th>
+                <th>No.</th><th>Timestamp</th><th>Machine Category</th><th>Task Type</th><th>Delay (milliseconds)</th><th>Speed (tasks per second)</th><th>Better Result (Based on Performance)</th><th>Server</th><th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -476,7 +557,7 @@ const ExecutionResultsView = ({ gbfs, pso, logs, setLogs }) => {
                   <div style={{color: 'var(--text-main)', fontSize: '14px', lineHeight: '1.5'}}>{insightText}</div>
                 </div>
                 <div style={{backgroundColor: 'rgba(168, 85, 247, 0.1)', padding: '15px', borderRadius: '4px', borderLeft: '3px solid var(--magenta)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minWidth: '150px'}}>
-                  <div style={{fontSize: '12px', color: 'var(--text-muted)'}}>Latency Improvement (%)</div>
+                  <div style={{fontSize: '12px', color: 'var(--text-muted)'}}>Faster Response Time (%)</div>
                   <div style={{color: 'var(--magenta)', fontSize: '24px', fontWeight: 'bold'}}>{improvement}%</div>
                 </div>
               </div>
@@ -500,7 +581,7 @@ const ExecutionResultsView = ({ gbfs, pso, logs, setLogs }) => {
                     <th>Avg Speed (GBFS / PSO)</th>
                     <th>Avg Energy (GBFS / PSO)</th>
                     <th>Avg Util (GBFS / PSO)</th>
-                    <th>Winner</th>
+                    <th>Better Result (Based on Performance)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -651,12 +732,13 @@ export default function App() {
           <div className="step-container">
             <PanelHeader 
               title="ALGORITHMS APPLIED" 
-              description="Evaluate tasks using GBFS and PSO algorithms." 
+              description="Evaluate tasks using Greedy Best-First Search (GBFS) and Particle Swarm Optimization (PSO) algorithms." 
               variant="main"
             />
+            <PerformanceOverviewPanel gbfs={gbfsData} pso={psoData} />
             <div className="row-container">
-              <AlgoPanel title="GBFS EVALUATION" colorClass="cyan-text" data={gbfsData} />
-              <AlgoPanel title="PSO EVALUATION" colorClass="magenta-text" data={psoData} />
+              <AlgoPanel title="Greedy Best-First Search (GBFS) Evaluation" colorClass="cyan-text" data={gbfsData} />
+              <AlgoPanel title="Particle Swarm Optimization (PSO) Evaluation" colorClass="magenta-text" data={psoData} />
             </div>
           </div>
         );

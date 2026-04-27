@@ -7,7 +7,7 @@ import time
 from algorithms.gbfs import compute_gbfs_score
 from algorithms.pso import compute_pso_score
 from simulation.server_simulator import ServerSimulator
-from monitoring.performance_graphs import PerformanceMonitor
+from monitoring.performance_graphs import PerformanceMonitor, PerformancePieCharts
 
 # Modern Theme Colors
 BG_COLOR = "#0b1121"
@@ -77,8 +77,8 @@ class DashboardApp:
         nav_items = [
             ("System Overview", "overview_panel"),
             ("Operational Metrics", "metrics_panel"),
-            ("GBFS Evaluation", "gbfs_panel"),
-            ("PSO Evaluation", "pso_panel"),
+            ("Greedy Best-First Search (GBFS) Evaluation", "gbfs_panel"),
+            ("Particle Swarm Optimization (PSO) Evaluation", "pso_panel"),
             ("Task Offloading Evaluation", "offloading_panel"),
             ("Task Assignment", "assignment_panel"),
             ("Result Transmission", "transmission_panel"),
@@ -144,6 +144,7 @@ class DashboardApp:
 
         self.create_row1()
         self.create_row2()
+        self.create_row2_5()
         self.create_row3()
         self.create_row4()
         self.create_row5()
@@ -179,6 +180,18 @@ class DashboardApp:
 
         self.create_machine_metrics_card(c0)
         self.create_decision_card(c1)
+
+    def create_row2_5(self):
+        row = tk.Frame(self.main_container, bg=BG_COLOR)
+        row.pack(fill="x", pady=10)
+        c0 = tk.Frame(row, bg=BG_COLOR); c0.pack(fill="both", expand=True, padx=10)
+        border, card = self.create_card_frame(c0, "PERFORMANCE OVERVIEW", TEXT_MAIN)
+        border.pack(fill='both', expand=True)
+        card.pack_propagate(False)
+        card.config(height=420)
+        
+        self.pie_monitor = PerformancePieCharts(card)
+        tk.Label(card, text="This chart shows how each algorithm performs across different metrics. It helps visualize which factors contribute most to overall performance.", bg=CARD_BG, fg=TEXT_MUTED, font=('Segoe UI', 11, 'italic'), wraplength=1000).pack(pady=(15, 0))
 
     def create_row3(self):
         row = tk.Frame(self.main_container, bg=BG_COLOR)
@@ -321,11 +334,11 @@ class DashboardApp:
         return border, labels
 
     def create_gbfs_card(self, parent):
-        border, self.gbfs_labels = self.build_algo_grid(parent, "GBFS EVALUATION", CYAN)
+        border, self.gbfs_labels = self.build_algo_grid(parent, "Greedy Best-First Search (GBFS) Evaluation", CYAN)
         self.target_widgets["gbfs_panel"] = border
         
     def create_pso_card(self, parent):
-        border, self.pso_labels = self.build_algo_grid(parent, "PSO EVALUATION", MAGENTA)
+        border, self.pso_labels = self.build_algo_grid(parent, "Particle Swarm Optimization (PSO) Evaluation", MAGENTA)
         self.target_widgets["pso_panel"] = border
 
     def create_offloading_eval_card(self, parent):
@@ -336,7 +349,7 @@ class DashboardApp:
         table = tk.Frame(card, bg=CARD_BORDER)
         table.pack(fill='x', pady=5)
         
-        headers = ["Metric", "GBFS", "PSO", "Winner"]
+        headers = ["Metric", "GBFS", "PSO", "Better Result (Based on Performance)"]
         for c, h in enumerate(headers):
             tk.Label(table, text=h, bg=SIDEBAR_BG, fg=TEXT_MUTED, font=('Segoe UI', 10, 'bold')).grid(row=0, column=c, sticky='nsew', padx=1, pady=1)
         
@@ -357,7 +370,7 @@ class DashboardApp:
         
         bot = tk.Frame(card, bg=CARD_BG)
         bot.pack(fill='x', pady=(20,0))
-        tk.Label(bot, text="Winning Algorithm:", bg=CARD_BG, fg=TEXT_MUTED, font=('Segoe UI', 12, 'bold')).pack(side='left')
+        tk.Label(bot, text="Better Result (Based on Performance):", bg=CARD_BG, fg=TEXT_MUTED, font=('Segoe UI', 12, 'bold')).pack(side='left')
         self.win_lbl = tk.Label(bot, text="-", bg=CARD_BG, fg=GREEN, font=('Segoe UI', 14, 'bold'))
         self.win_lbl.pack(side='left', padx=10)
 
@@ -410,7 +423,7 @@ class DashboardApp:
         border.pack(fill='both', expand=True)
         self.target_widgets["logs_panel"] = border
         
-        headers = ["No.", "Timestamp", "Machine Category", "Specific Machine", "Input Metrics", "Task Type", "Delay (milliseconds)", "Speed (tasks per second)", "GBFS Energy", "PSO Energy", "Winner", "Server", "Status"]
+        headers = ["No.", "Timestamp", "Machine Category", "Specific Machine", "Input Metrics", "Task Type", "Delay (milliseconds)", "Speed (tasks per second)", "GBFS Energy", "PSO Energy", "Better Result (Based on Performance)", "Server", "Status"]
         self.log_weights = [1, 2, 2, 2, 3, 2, 1, 1, 1, 1, 1, 1, 1]
         
         header_frame = tk.Frame(card, bg=SIDEBAR_BG, pady=8)
@@ -661,6 +674,7 @@ class DashboardApp:
             
             # Monitor & Log
             self.monitor.update_graphs(gbfs_res, pso_res)
+            self.pie_monitor.update_graphs(gbfs_res, pso_res)
             self.record_counter += 1
             
             import datetime

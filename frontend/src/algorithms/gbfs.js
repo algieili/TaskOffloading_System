@@ -31,7 +31,7 @@ export function computeGbfsScore(taskParams) {
         utilization: estUtilization.toFixed(2),
         location: suggestedLocation,
         time: "12",
-        remark: "Greedy heuristic applied"
+        remark: "Greedy Best-First Search approach applied"
     };
   } catch (err) {
     return { score: 0, latency: 0, throughput: 0, energy: 0, utilization: 0, location: "Edge", time: "0", remark: "Error" };
