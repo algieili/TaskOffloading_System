@@ -2,6 +2,27 @@ import React, { useState } from "react";
 import "./App.css";
 import { computeGbfsScore } from "./algorithms/gbfs";
 import { computePsoScore } from "./algorithms/pso";
+import { useEffect, useState } from "react";
+
+function App() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch(import.meta.env.VITE_BACKEND_URL + "/")
+      .then(res => res.json())
+      .then(data => setData(data))
+      .catch(err => console.log(err));
+  }, []);
+
+  return (
+    <div>
+      <h1>Task Offloading System</h1>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  );
+}
+
+export default App;
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, 
   CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList,
