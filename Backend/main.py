@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-
+from supabase_client import supabase
 app = FastAPI()
 
 @app.get("/")
@@ -39,5 +39,3 @@ def test():
         "message": "Render + Vercel connection working 🚀",
         "success": True
     }
-// supabase logging
-from supabase_client import supabase
