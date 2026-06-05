@@ -22,3 +22,20 @@ def test():
         "message": "Render + Vercel connection working 🚀",
         "success": True
     }
+from supabase_client import supabase
+
+@app.get("/supabase-test")
+def supabase_test():
+    try:
+        result = supabase.table("users").select("*").limit(1).execute()
+
+        return {
+            "success": True,
+            "data": result.data
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
