@@ -16,11 +16,9 @@ app.add_middleware(
 def home():
     return {"status": "ok"}
 
-@app.get("/test")
-def test():
-    return {
-        "message": "Render + Vercel connection working 🚀",
-        "success": True
+@app.get("/health")
+def health():
+    return {"backend": "working"}
     }
 from supabase_client import supabase
 
