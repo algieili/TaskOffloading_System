@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from supabase_client import supabase
 app = FastAPI()
 
 @app.get("/")
@@ -14,7 +15,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-// render
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
