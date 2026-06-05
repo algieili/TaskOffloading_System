@@ -8,3 +8,5 @@ supabase = None
 
 if SUPABASE_URL and SUPABASE_KEY:
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+else:
+    print("⚠️ Supabase not configured - missing env vars")
