@@ -19,7 +19,6 @@ def home():
 @app.get("/health")
 def health():
     return {"backend": "working"}
-    }
 from supabase_client import supabase
 
 @app.get("/supabase-test")
