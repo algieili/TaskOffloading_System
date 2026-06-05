@@ -22,7 +22,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # later replace with your Vercel URL
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,8 +33,8 @@ def home():
     return {"status": "ok"}
 
 @app.get("/test")
-def test_connection():
+def test():
     return {
-        "message": "Frontend is connected to Render backend 🚀",
+        "message": "Render + Vercel connection working 🚀",
         "success": True
     }
