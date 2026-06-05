@@ -25,11 +25,13 @@ from supabase_client import supabase
 @app.get("/supabase-test")
 def supabase_test():
     try:
-        res = supabase.table("YOUR_TABLE_NAME").select("*").limit(1).execute()
+        res = supabase.table("tasks").select("*").limit(1).execute()
+
         return {
             "supabase": "connected",
             "data": res.data
         }
+
     except Exception as e:
         return {
             "supabase": "error",
