@@ -1,8 +1,8 @@
 from fastapi import FastAPI
-from supabase_client import supabase
 
 app = FastAPI()
 
 @app.get("/")
+@app.head("/")
 def home():
     return {"status": "ok"}
