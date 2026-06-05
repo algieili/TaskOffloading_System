@@ -4,9 +4,7 @@ from supabase import create_client
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 
-supabase = None
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise Exception("Missing Supabase environment variables")
 
-if SUPABASE_URL and SUPABASE_KEY:
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-else:
-    print("⚠️ Supabase not configured - missing env vars")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
